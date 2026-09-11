@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 
+from app.api.customer import router as customer_router
 from app.core.config import settings
 from app.db.session import engine
 
@@ -9,6 +10,12 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="AI-powered customer support and billing assistant with function calling",
+)
+
+
+app.include_router(
+    customer_router,
+    prefix="/api/v1",
 )
 
 

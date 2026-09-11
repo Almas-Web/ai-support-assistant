@@ -12,3 +12,19 @@ CUSTOMER_TOOL = {
         "required": ["customer_id"],
     },
 }
+
+
+INVOICE_TOOL = {
+    "name": "get_invoice",
+    "description": "Get invoice information by invoice ID.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "invoice_id": {
+                "type": "integer",
+                "description": "The unique ID of the invoice.",
+            }
+        },
+        "required": ["invoice_id"],
+    },
+}

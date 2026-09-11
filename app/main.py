@@ -3,6 +3,7 @@ from sqlalchemy import text
 
 from app.api.ai import router as ai_router
 from app.api.customer import router as customer_router
+from app.api.invoice import router as invoice_router
 from app.core.config import settings
 from app.db.session import engine
 
@@ -16,6 +17,11 @@ app = FastAPI(
 
 app.include_router(
     customer_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    invoice_router,
     prefix="/api/v1",
 )
 

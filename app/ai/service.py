@@ -3,8 +3,8 @@ import json
 from sqlalchemy.orm import Session
 
 from app.ai.client import client
-from app.ai.tools import get_customer
-from app.ai.tools_schema import CUSTOMER_TOOL
+from app.ai.tools import get_customer, get_invoice
+from app.ai.tools_schema import CUSTOMER_TOOL, INVOICE_TOOL
 from app.core.config import settings
 
 
@@ -20,6 +20,7 @@ def generate_response(
                 {
                     "function_declarations": [
                         CUSTOMER_TOOL,
+                        INVOICE_TOOL,
                     ],
                 }
             ],
@@ -34,12 +35,25 @@ def generate_response(
     tool_results = []
 
     for function_call in function_calls:
-        if function_call.name == "get_customer":
-            arguments = function_call.args
+        arguments = function_call.args
 
+        if function_call.name == "get_customer":
             result = get_customer(
                 db=db,
                 customer_id=int(arguments["customer_id"]),
+            )
+
+            tool_results.append(
+                {
+                    "name": function_call.name,
+                    "result": result,
+                }
+            )
+
+        elif function_call.name == "get_invoice":
+            result = get_invoice(
+                db=db,
+                invoice_id=int(arguments["invoice_id"]),
             )
 
             tool_results.append(
@@ -65,7 +79,12 @@ The application executed the following tool:
 
 Use the tool result to answer the user's request accurately.
 Do not mention internal tools or function calling.
-If the customer was not found, clearly tell the user that the customer was not found.
+
+If the customer was not found, clearly tell the user
+that the customer was not found.
+
+If the invoice was not found, clearly tell the user
+that the invoice was not found.
 """
 
     final_response = client.models.generate_content(

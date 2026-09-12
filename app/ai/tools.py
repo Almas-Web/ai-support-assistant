@@ -3,6 +3,8 @@ from app.services.customer_service import get_customer_by_id
 from app.services.invoice_service import get_invoice_by_id
 from app.services.payment_service import get_payment_by_id
 from app.services.subscription_service import get_subscription_by_id
+from app.services.ticket_service import get_ticket_by_id
+from app.services.ticket_service import create_ticket
 def get_customer(
     db: Session,
     customer_id: int,
@@ -104,5 +106,59 @@ def get_subscription(
                 if subscription.expires_at
                 else None
             ),
+        },
+    }
+
+def get_ticket(
+    db: Session,
+    ticket_id: int,
+) -> dict:
+    ticket = get_ticket_by_id(
+        db=db,
+        ticket_id=ticket_id,
+    )
+    if ticket is None:
+        return {
+            "success": False,
+            "error": "Support ticket not found",
+            "ticket_id": ticket_id,
+        }
+    return {
+        "success": True,
+        "ticket": {
+            "id": ticket.id,
+            "customer_id": ticket.customer_id,
+            "subject": ticket.subject,
+            "description": ticket.description,
+            "status": ticket.status,
+            "priority": ticket.priority,
+            "created_at": ticket.created_at.isoformat(),
+        },
+    }
+
+def create_support_ticket(
+    db: Session,
+    customer_id: int,
+    subject: str,
+    description: str,
+    priority: str,
+) -> dict:
+    ticket = create_ticket(
+        db=db,
+        customer_id=customer_id,
+        subject=subject,
+        description=description,
+        priority=priority,
+    )
+    return {
+        "success": True,
+        "ticket": {
+            "id": ticket.id,
+            "customer_id": ticket.customer_id,
+            "subject": ticket.subject,
+            "description": ticket.description,
+            "status": ticket.status,
+            "priority": ticket.priority,
+            "created_at": ticket.created_at.isoformat(),
         },
     }

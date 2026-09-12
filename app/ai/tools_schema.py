@@ -40,3 +40,18 @@ PAYMENT_STATUS_TOOL = {
         "required": ["payment_id"],
     },
 }
+
+SUBSCRIPTION_TOOL = {
+    "name": "get_subscription",
+    "description": "Get subscription information by subscription ID.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "subscription_id": {
+                "type": "integer",
+                "description": "The unique ID of the subscription.",
+            }
+        },
+        "required": ["subscription_id"],
+    },
+}

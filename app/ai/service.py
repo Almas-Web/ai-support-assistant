@@ -1,8 +1,18 @@
 import json
 from sqlalchemy.orm import Session
 from app.ai.client import client
-from app.ai.tools import get_customer, get_invoice, get_payment_status
-from app.ai.tools_schema import CUSTOMER_TOOL, INVOICE_TOOL, PAYMENT_STATUS_TOOL
+from app.ai.tools import (
+    get_customer,
+    get_invoice,
+    get_payment_status,
+    get_subscription,
+)
+from app.ai.tools_schema import (
+    CUSTOMER_TOOL,
+    INVOICE_TOOL,
+    PAYMENT_STATUS_TOOL,
+    SUBSCRIPTION_TOOL,
+)
 from app.core.config import settings
 def generate_response(
     prompt: str,
@@ -18,6 +28,7 @@ def generate_response(
                         CUSTOMER_TOOL,
                         INVOICE_TOOL,
                         PAYMENT_STATUS_TOOL,
+                        SUBSCRIPTION_TOOL,
                     ],
                 }
             ],
@@ -62,6 +73,17 @@ def generate_response(
                     "result": result,
                 }
             )
+        elif function_call.name == "get_subscription":
+            result = get_subscription(
+                db=db,
+                subscription_id=int(arguments["subscription_id"]),
+            )
+            tool_results.append(
+                {
+                    "name": function_call.name,
+                    "result": result,
+                }
+            )
     if not tool_results:
         return response.text
     tool_response = json.dumps(tool_results)
@@ -76,6 +98,7 @@ Do not mention internal tools or function calling.
 If the customer was not found, clearly tell the user that the customer was not found.
 If the invoice was not found, clearly tell the user that the invoice was not found.
 If the payment was not found, clearly tell the user that the payment was not found.
+If the subscription was not found, clearly tell the user that the subscription was not found.
 """
     final_response = client.models.generate_content(
         model=settings.gemini_model,

@@ -1,6 +1,7 @@
 import json
 from sqlalchemy.orm import Session
 from app.ai.client import client
+from app.ai.permissions import is_tool_allowed
 from app.ai.tools import (
     create_support_ticket,
     get_customer,
@@ -51,69 +52,56 @@ def generate_response(
     tool_results = []
 
     for function_call in function_calls:
+        tool_name = function_call.name
+
+        if not is_tool_allowed(
+            tool_name=tool_name,
+            allow_write=True,
+        ):
+            tool_results.append(
+                {
+                    "name": tool_name,
+                    "result": {
+                        "success": False,
+                        "error": "This tool is not allowed.",
+                    },
+                }
+            )
+            continue
+
         arguments = function_call.args
 
-        if function_call.name == "get_customer":
+        if tool_name == "get_customer":
             result = get_customer(
                 db=db,
                 customer_id=int(arguments["customer_id"]),
             )
-            tool_results.append(
-                {
-                    "name": function_call.name,
-                    "result": result,
-                }
-            )
 
-        elif function_call.name == "get_invoice":
+        elif tool_name == "get_invoice":
             result = get_invoice(
                 db=db,
                 invoice_id=int(arguments["invoice_id"]),
             )
-            tool_results.append(
-                {
-                    "name": function_call.name,
-                    "result": result,
-                }
-            )
 
-        elif function_call.name == "get_payment_status":
+        elif tool_name == "get_payment_status":
             result = get_payment_status(
                 db=db,
                 payment_id=int(arguments["payment_id"]),
             )
-            tool_results.append(
-                {
-                    "name": function_call.name,
-                    "result": result,
-                }
-            )
 
-        elif function_call.name == "get_subscription":
+        elif tool_name == "get_subscription":
             result = get_subscription(
                 db=db,
                 subscription_id=int(arguments["subscription_id"]),
             )
-            tool_results.append(
-                {
-                    "name": function_call.name,
-                    "result": result,
-                }
-            )
 
-        elif function_call.name == "get_ticket":
+        elif tool_name == "get_ticket":
             result = get_ticket(
                 db=db,
                 ticket_id=int(arguments["ticket_id"]),
             )
-            tool_results.append(
-                {
-                    "name": function_call.name,
-                    "result": result,
-                }
-            )
 
-        elif function_call.name == "create_support_ticket":
+        elif tool_name == "create_support_ticket":
             result = create_support_ticket(
                 db=db,
                 customer_id=int(arguments["customer_id"]),
@@ -121,12 +109,19 @@ def generate_response(
                 description=str(arguments["description"]),
                 priority=str(arguments["priority"]),
             )
-            tool_results.append(
-                {
-                    "name": function_call.name,
-                    "result": result,
-                }
-            )
+
+        else:
+            result = {
+                "success": False,
+                "error": "Unknown tool.",
+            }
+
+        tool_results.append(
+            {
+                "name": tool_name,
+                "result": result,
+            }
+        )
 
     if not tool_results:
         return response.text
@@ -148,6 +143,7 @@ If the invoice was not found, clearly tell the user that the invoice was not fou
 If the payment was not found, clearly tell the user that the payment was not found.
 If the subscription was not found, clearly tell the user that the subscription was not found.
 If the support ticket was not found, clearly tell the user that the support ticket was not found.
+If a tool is not allowed, clearly tell the user that this action is not currently allowed.
 If a new support ticket was created, clearly provide the ticket ID, subject, status, and priority.
 """
 

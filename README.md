@@ -586,4 +586,95 @@ The application has been manually tested for:
 * API health
 * Database connection
 * Customer lookup
-* Invoic
+* Invoice lookup
+* Payment status
+* Subscription status
+* Support ticket lookup
+* Multiple tool calls
+* Missing customer handling
+* Missing resource handling
+* Tool permissions
+* Human approval workflow
+* Support ticket creation after approval
+* Approval rejection
+* Blocking already rejected approvals
+* AI chat endpoint
+
+## Security Considerations
+
+This project is designed as a learning and portfolio project.
+
+The current approval endpoints demonstrate the approval workflow but do not include production authentication and authorization.
+
+For production use, the application should add:
+
+* JWT authentication
+* User accounts
+* Role-based access control
+* Permission checks for approval actions
+* Audit logging
+* Rate limiting
+* API key protection
+* Production secrets management
+* HTTPS
+* Stronger input validation
+
+## Future Improvements
+
+Possible future improvements include:
+
+* JWT authentication
+* Role-based access control
+* Conversation history
+* More billing tools
+* More customer support tools
+* Automated background tasks
+* Email notifications
+* SLA automation
+* Redis integration
+* Celery integration
+* Automated pytest test suite
+* Production Docker deployment
+* CI/CD pipeline
+* Monitoring and logging
+
+## Learning Goals
+
+This project was built to practice:
+
+* FastAPI backend development
+* REST API design
+* PostgreSQL
+* SQLAlchemy
+* Alembic migrations
+* Docker
+* Gemini API integration
+* LLM function calling
+* Tool calling
+* AI application architecture
+* Permission handling
+* Human-in-the-loop workflows
+* Backend error handling
+
+## Author
+
+**Almas Hossen**
+
+Python Backend Developer focused on:
+
+* Python
+* Django
+* FastAPI
+* PostgreSQL
+* REST APIs
+* Docker
+* AI Integration
+* Backend Automation
+
+GitHub:
+
+https://github.com/Almas-Web
+
+Portfolio:
+
+https://almas-web-portfolio.netlify.app/

@@ -1,7 +1,7 @@
 import json
 from sqlalchemy.orm import Session
 from app.ai.client import client
-from app.ai.permissions import is_tool_allowed
+from app.ai.permissions import is_tool_allowed, requires_human_approval
 from app.ai.tools import (
     create_support_ticket,
     get_customer,
@@ -54,9 +54,22 @@ def generate_response(
     for function_call in function_calls:
         tool_name = function_call.name
 
+        if requires_human_approval(tool_name):
+            tool_results.append(
+                {
+                    "name": tool_name,
+                    "result": {
+                        "success": False,
+                        "requires_approval": True,
+                        "message": "Human approval is required before this action can be executed.",
+                    },
+                }
+            )
+            continue
+
         if not is_tool_allowed(
             tool_name=tool_name,
-            allow_write=True,
+            allow_write=False,
         ):
             tool_results.append(
                 {
@@ -133,17 +146,21 @@ You are a customer support assistant.
 User request:
 {prompt}
 
-The application executed the following tool:
+The application processed the following tool request:
 {tool_response}
 
-Use the tool result to answer the user's request accurately.
+Use the result to answer the user's request accurately.
 Do not mention internal tools or function calling.
+
 If the customer was not found, clearly tell the user that the customer was not found.
 If the invoice was not found, clearly tell the user that the invoice was not found.
 If the payment was not found, clearly tell the user that the payment was not found.
 If the subscription was not found, clearly tell the user that the subscription was not found.
 If the support ticket was not found, clearly tell the user that the support ticket was not found.
-If a tool is not allowed, clearly tell the user that this action is not currently allowed.
+
+If requires_approval is true, clearly tell the user that human approval is required before creating the support ticket.
+Do not claim that the ticket was created when approval is required.
+
 If a new support ticket was created, clearly provide the ticket ID, subject, status, and priority.
 """
 

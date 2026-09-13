@@ -22,3 +22,7 @@ def is_tool_allowed(
         return allow_write
 
     return False
+
+
+def requires_human_approval(tool_name: str) -> bool:
+    return tool_name in WRITE_TOOLS

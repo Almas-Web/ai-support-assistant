@@ -8,6 +8,7 @@ from app.api.subscription import router as subscription_router
 from app.api.ticket import router as ticket_router
 from app.core.config import settings
 from app.db.session import engine
+from app.api.approval import router as approval_router
 
 
 app = FastAPI(
@@ -48,6 +49,7 @@ app.include_router(
 )
 
 
+app.include_router(approval_router, prefix="/api/v1")
 @app.get("/")
 def health_check():
     return {

@@ -3,6 +3,7 @@ from app.models.invoice import Invoice
 from app.models.payment import Payment
 from app.models.subscription import Subscription
 from app.models.ticket import SupportTicket
+from app.models.approval import Approval
 
 __all__ = [
     "Customer",
@@ -10,4 +11,5 @@ __all__ = [
     "Payment",
     "Subscription",
     "SupportTicket",
+    "Approval",
 ]

@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.ai.client import client
 from app.ai.permissions import is_tool_allowed, requires_human_approval
 from app.ai.tools import (
-    create_support_ticket,
     get_customer,
     get_invoice,
     get_payment_status,
@@ -19,6 +18,7 @@ from app.ai.tools_schema import (
     TICKET_TOOL,
 )
 from app.core.config import settings
+from app.services.approval_service import create_approval
 
 
 def generate_response(
@@ -53,14 +53,23 @@ def generate_response(
 
     for function_call in function_calls:
         tool_name = function_call.name
+        arguments = dict(function_call.args)
 
         if requires_human_approval(tool_name):
+            approval = create_approval(
+                db=db,
+                tool_name=tool_name,
+                arguments=arguments,
+            )
+
             tool_results.append(
                 {
                     "name": tool_name,
                     "result": {
                         "success": False,
                         "requires_approval": True,
+                        "approval_id": approval.id,
+                        "status": approval.status,
                         "message": "Human approval is required before this action can be executed.",
                     },
                 }
@@ -81,8 +90,6 @@ def generate_response(
                 }
             )
             continue
-
-        arguments = function_call.args
 
         if tool_name == "get_customer":
             result = get_customer(
@@ -114,15 +121,6 @@ def generate_response(
                 ticket_id=int(arguments["ticket_id"]),
             )
 
-        elif tool_name == "create_support_ticket":
-            result = create_support_ticket(
-                db=db,
-                customer_id=int(arguments["customer_id"]),
-                subject=str(arguments["subject"]),
-                description=str(arguments["description"]),
-                priority=str(arguments["priority"]),
-            )
-
         else:
             result = {
                 "success": False,
@@ -146,7 +144,7 @@ You are a customer support assistant.
 User request:
 {prompt}
 
-The application processed the following tool request:
+The application processed the following request:
 {tool_response}
 
 Use the result to answer the user's request accurately.
@@ -158,10 +156,16 @@ If the payment was not found, clearly tell the user that the payment was not fou
 If the subscription was not found, clearly tell the user that the subscription was not found.
 If the support ticket was not found, clearly tell the user that the support ticket was not found.
 
-If requires_approval is true, clearly tell the user that human approval is required before creating the support ticket.
-Do not claim that the ticket was created when approval is required.
+If requires_approval is true:
+- Tell the user that human approval is required.
+- Provide the approval ID.
+- Clearly state that the action has NOT been executed yet.
 
-If a new support ticket was created, clearly provide the ticket ID, subject, status, and priority.
+If a ticket was created:
+- Provide the ticket ID.
+- Provide the subject.
+- Provide the status.
+- Provide the priority.
 """
 
     final_response = client.models.generate_content(
